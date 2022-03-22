@@ -2,6 +2,8 @@ package hdl
 
 import chisel3._
 import sv2chisel.helpers.tools.VerilogPortWrapper
+//import hdl.gowin_osc.Gowin_OSC
+import hdl.gowin_pll.Gowin_PLL
 
 class TOP() extends RawModule {
   val nRST = IO(Input(Bool()))
@@ -24,10 +26,10 @@ class TOP() extends RawModule {
   val CLK_PIX = Wire(Bool()) 
 
   val oscout_o = Wire(Bool()) 
-  /* //使用内部时钟
-      Gowin_OSC chip_osc(
-          .oscout(oscout_o) //output oscout
-      );
+  /*
+  //使用内部时钟
+  val chip_osc = Module(new Gowin_OSC) //Use internal clock
+  oscout_o := chip_osc.oscout //output oscout
   */
   val chip_pll = Module(new Gowin_PLL)
   CLK_SYS := chip_pll.clkout //output clkout      //200M

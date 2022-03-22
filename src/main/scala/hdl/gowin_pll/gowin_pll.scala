@@ -2,6 +2,7 @@ package hdl
 package gowin_pll
 
 import chisel3._
+import chisel3.experimental.Param
 //Copyright (C)2014-2019 Gowin Semiconductor Corporation.
 //All rights reserved.
 //File Title: IP file
@@ -9,11 +10,57 @@ import chisel3._
 //Part Number: GW1N-LV1QN48C6/I5
 //Created Time: Fri Oct 25 15:23:07 2019
 
+class PLL(val pm: Map[String, Param]) extends BlackBox(pm){
+    val io = IO(new Bundle{
+        val CLKOUT = Output(Clock())
+        val LOCK = Output(UInt(1.W))
+        val CLKOUTP = Output(Clock())
+        val CLKOUTD = Output(Clock())
+        val CLKOUTD3 = Output(Clock())
+        val RESET = Input(UInt(1.W))
+        val RESET_P = Input(UInt(1.W))
+        val RESET_I = Input(UInt(1.W))
+        val RESET_S = Input(UInt(1.W))
+        val CLKIN = Input(Clock())
+        val CLKFB = Input(Bool())
+        val FBDSEL = Input(UInt(6.W))
+        val IDSEL = Input(UInt(6.W))
+        val ODSEL = Input(UInt(6.W))
+        val PSDA = Input(UInt(4.W))
+        val DUTYDA = Input(UInt(4.W))
+        val FDLY = Input(UInt(4.W))
+    })
+}
+
 class Gowin_PLL() extends RawModule {
 
   val clkout = IO(Output(Bool()))
   val clkoutd = IO(Output(Bool()))
   val clkin = IO(Input(Bool()))
+
+  val pm: Map[String, Param] = Map(
+  "FCLKIN" -> "24",
+  "DYN_IDIV_SEL" -> "false",
+  "IDIV_SEL" -> 2,
+  "DYN_FBDIV_SEL" -> "false",
+  "FBDIV_SEL" -> 24,
+  "DYN_ODIV_SEL" -> "false",
+  "ODIV_SEL" -> 4,
+  "PSDA_SEL" -> "0000",
+  "DYN_DA_EN" -> "true",
+  "DUTYDA_SEL" -> "1000",
+  "CLKOUT_FT_DIR" -> "1'b1",
+  "CLKOUTP_FT_DIR" -> "1'b1",
+  "CLKOUT_DLY_STEP" -> 0,
+  "CLKOUTP_DLY_STEP" -> 0,
+  "CLKFB_SEL" -> "internal",
+  "CLKOUT_BYPASS" -> "false",
+  "CLKOUTP_BYPASS" -> "false",
+  "CLKOUTD_BYPASS" -> "false",
+  "DYN_SDIV_SEL" -> 6,
+  "CLKOUTD_SRC" -> "CLKOUT",
+  "CLKOUTD3_SRC" -> "CLKOUT",
+  "DEVICE" -> "GW1N-1")
 
   val lock_o = Wire(Bool()) 
   val clkoutp_o = Wire(Bool()) 
@@ -97,23 +144,23 @@ class Gowin_PLL() extends RawModule {
   pll_inst_FDLY.gw_gnd_1 := gw_gnd
   pll_inst_FDLY.gw_gnd_2 := gw_gnd
 
-  val pll_inst = Module(new PLL)
-  clkout := pll_inst.CLKOUT.asTypeOf(clkout)
-  pll_inst.LOCK <> lock_o
-  pll_inst.CLKOUTP <> clkoutp_o
-  clkoutd := pll_inst.CLKOUTD.asTypeOf(clkoutd)
-  pll_inst.CLKOUTD3 <> clkoutd3_o
-  pll_inst.RESET := gw_gnd
-  pll_inst.RESET_P := gw_gnd
-  pll_inst.RESET_I := gw_gnd
-  pll_inst.RESET_S := gw_gnd
-  pll_inst.CLKIN := clkin
-  pll_inst.CLKFB := gw_gnd
-  pll_inst.FBDSEL := pll_inst_FBDSEL.asTypeOf(pll_inst.FBDSEL)
-  pll_inst.IDSEL := pll_inst_IDSEL.asTypeOf(pll_inst.IDSEL)
-  pll_inst.ODSEL := pll_inst_ODSEL.asTypeOf(pll_inst.ODSEL)
-  pll_inst.PSDA := pll_inst_PSDA.asTypeOf(pll_inst.PSDA)
-  pll_inst.DUTYDA := pll_inst_DUTYDA.asTypeOf(pll_inst.DUTYDA)
-  pll_inst.FDLY := pll_inst_FDLY.asTypeOf(pll_inst.FDLY)
+  val pll_inst = Module(new PLL(pm))
+  clkout := pll_inst.io.CLKOUT.asTypeOf(clkout)
+  pll_inst.io.LOCK <> lock_o
+  pll_inst.io.CLKOUTP <> clkoutp_o
+  clkoutd := pll_inst.io.CLKOUTD.asTypeOf(clkoutd)
+  pll_inst.io.CLKOUTD3 <> clkoutd3_o
+  pll_inst.io.RESET := gw_gnd
+  pll_inst.io.RESET_P := gw_gnd
+  pll_inst.io.RESET_I := gw_gnd
+  pll_inst.io.RESET_S := gw_gnd
+  pll_inst.io.CLKIN := clkin
+  pll_inst.io.CLKFB := gw_gnd
+  pll_inst.io.FBDSEL := pll_inst_FBDSEL.asTypeOf(pll_inst.io.FBDSEL)
+  pll_inst.io.IDSEL := pll_inst_IDSEL.asTypeOf(pll_inst.io.IDSEL)
+  pll_inst.io.ODSEL := pll_inst_ODSEL.asTypeOf(pll_inst.io.ODSEL)
+  pll_inst.io.PSDA := pll_inst_PSDA.asTypeOf(pll_inst.io.PSDA)
+  pll_inst.io.DUTYDA := pll_inst_DUTYDA.asTypeOf(pll_inst.io.DUTYDA)
+  pll_inst.io.FDLY := pll_inst_FDLY.asTypeOf(pll_inst.io.FDLY)
 
 } //Gowin_PLL
