@@ -1,7 +1,7 @@
 package hdl
 
 import chisel3._
-import sv2chisel.helpers.tools.VerilogPortWrapper
+import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 //import hdl.gowin_osc.Gowin_OSC
 import hdl.gowin_pll.Gowin_PLL
 
@@ -70,9 +70,6 @@ class TOP() extends RawModule {
 }
 
 object TOPGen extends App {
-  VerilogPortWrapper.emit(
-    () => new TOP(),
-    forcePreset = true,
-    args = args
-  )
+  (new ChiselStage).execute(args,
+    Seq(ChiselGeneratorAnnotation(() => new TOP())))
 }
