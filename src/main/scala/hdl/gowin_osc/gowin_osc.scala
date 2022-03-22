@@ -19,13 +19,13 @@ class OSCH(val pm: Map[String, Param]) extends BlackBox(pm){
 
 class Gowin_OSC() extends RawModule {
 
-  val oscout = IO(Output(Bool()))
+  val oscout = IO(Output(Clock()))
 
   val om: Map[String, Param] = Map(
   "FREQ_DIV" -> 10,
   "DEVICE" -> "GW1N-1")
 
   val osc_inst = Module(new OSCH(om))
-  oscout := osc_inst.io.OSCOUT.asTypeOf(oscout)
+  oscout := osc_inst.io.OSCOUT
 
 } //Gowin_OSC

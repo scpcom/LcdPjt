@@ -3,10 +3,10 @@ package hdl
 import chisel3._
 
 class VGAMod() extends RawModule {
-  val CLK = IO(Input(Bool()))
+  val CLK = IO(Input(Clock()))
   val nRST = IO(Input(Bool()))
 
-  val PixelClk = IO(Input(Bool()))
+  val PixelClk = IO(Input(Clock()))
 
   val LCD_DE = IO(Output(Bool()))
   val LCD_HSYNC = IO(Output(Bool()))

@@ -7,9 +7,9 @@ import hdl.gowin_pll.Gowin_PLL
 
 class TOP() extends RawModule {
   val nRST = IO(Input(Bool()))
-  val XTAL_IN = IO(Input(Bool()))
+  val XTAL_IN = IO(Input(Clock()))
 
-  val LCD_CLK = IO(Output(Bool()))
+  val LCD_CLK = IO(Output(Clock()))
   val LCD_HYNC = IO(Output(Bool()))
   val LCD_SYNC = IO(Output(Bool()))
   val LCD_DEN = IO(Output(Bool()))
@@ -22,10 +22,10 @@ class TOP() extends RawModule {
   val LED_B = IO(Output(Bool()))
   val KEY = IO(Input(Bool()))
 
-  val CLK_SYS = Wire(Bool()) 
-  val CLK_PIX = Wire(Bool()) 
+  val CLK_SYS = Wire(Clock())
+  val CLK_PIX = Wire(Clock())
 
-  val oscout_o = Wire(Bool()) 
+  val oscout_o = Wire(Clock())
   /*
   //使用内部时钟
   val chip_osc = Module(new Gowin_OSC) //Use internal clock
@@ -38,6 +38,7 @@ class TOP() extends RawModule {
 
 
 
+  withClockAndReset(CLK_SYS, ~nRST){
   val D1 = Module(new VGAMod)
   D1.CLK := CLK_SYS
   D1.nRST := nRST
@@ -67,6 +68,7 @@ class TOP() extends RawModule {
   LED_R :=  ~(rgb_data === "b01".U(2.W))
   LED_G :=  ~(rgb_data === "b10".U(2.W))
   LED_B :=  ~(rgb_data === "b11".U(2.W))
+  } // withClockAndReset(CLK_SYS, ~nRST)
 
 }
 

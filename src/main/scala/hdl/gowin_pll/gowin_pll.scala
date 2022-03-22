@@ -34,9 +34,9 @@ class PLL(val pm: Map[String, Param]) extends BlackBox(pm){
 
 class Gowin_PLL() extends RawModule {
 
-  val clkout = IO(Output(Bool()))
-  val clkoutd = IO(Output(Bool()))
-  val clkin = IO(Input(Bool()))
+  val clkout = IO(Output(Clock()))
+  val clkoutd = IO(Output(Clock()))
+  val clkin = IO(Input(Clock()))
 
   val pm: Map[String, Param] = Map(
   "FCLKIN" -> "24",
@@ -63,8 +63,8 @@ class Gowin_PLL() extends RawModule {
   "DEVICE" -> "GW1N-1")
 
   val lock_o = Wire(Bool()) 
-  val clkoutp_o = Wire(Bool()) 
-  val clkoutd3_o = Wire(Bool()) 
+  val clkoutp_o = Wire(Clock())
+  val clkoutd3_o = Wire(Clock())
   val gw_gnd = Wire(Bool()) 
   gw_gnd := false.B
   // NOTE: The following statements are auto generated due to the use of concatenation in port-map of instance pll_inst
@@ -145,10 +145,10 @@ class Gowin_PLL() extends RawModule {
   pll_inst_FDLY.gw_gnd_2 := gw_gnd
 
   val pll_inst = Module(new PLL(pm))
-  clkout := pll_inst.io.CLKOUT.asTypeOf(clkout)
+  clkout := pll_inst.io.CLKOUT
   pll_inst.io.LOCK <> lock_o
   pll_inst.io.CLKOUTP <> clkoutp_o
-  clkoutd := pll_inst.io.CLKOUTD.asTypeOf(clkoutd)
+  clkoutd := pll_inst.io.CLKOUTD
   pll_inst.io.CLKOUTD3 <> clkoutd3_o
   pll_inst.io.RESET := gw_gnd
   pll_inst.io.RESET_P := gw_gnd
