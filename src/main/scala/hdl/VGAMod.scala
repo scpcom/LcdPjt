@@ -16,8 +16,9 @@ class VGAMod() extends RawModule {
   val LCD_G = IO(Output(UInt(6.W)))
   val LCD_R = IO(Output(UInt(5.W)))
 
-  val PixelCount = Wire(UInt(16.W)) 
-  val LineCount = Wire(UInt(16.W)) 
+  withClockAndReset(PixelClk, ~nRST) {
+  val PixelCount = RegInit("b0".U(16.W))
+  val LineCount = RegInit("b0".U(16.W))
 
 	//pluse include in back pluse; t=pluse, sync act; t=bp, data act; t=bp+height, data end
   /*localparam      V_BackPorch = 16'd12; 
@@ -42,10 +43,7 @@ class VGAMod() extends RawModule {
 
   val PixelForHS = (WidthPixel+H_BackPorch)+H_FrontPorch
   val LineForVS = (HightPixel+V_BackPorch)+V_FrontPorch
-  when( !nRST) {
-    LineCount := "b0".U(16.W)
-    PixelCount := "b0".U(16.W)
-  } .elsewhen (PixelCount === PixelForHS) {
+  when (PixelCount === PixelForHS) {
     PixelCount := "b0".U(16.W)
     LineCount := LineCount+"b1".U(1.W)
   } .elsewhen (LineCount === LineForVS) {
@@ -55,15 +53,9 @@ class VGAMod() extends RawModule {
     PixelCount := PixelCount+"b1".U(1.W)
   }
 
-  val Data_R = Wire(UInt(10.W)) 
-  val Data_G = Wire(UInt(10.W)) 
-  val Data_B = Wire(UInt(10.W)) 
-  when( !nRST) {
-    Data_R := "b0".U(9.W)
-    Data_G := "b0".U(9.W)
-    Data_B := "b0".U(9.W)
-  } .otherwise {
-  }
+  val Data_R = RegInit("b0".U(10.W))
+  val Data_G = RegInit("b0".U(10.W))
+  val Data_B = RegInit("b0".U(10.W))
 
 	//注意这里HSYNC和VSYNC负极性
   LCD_HSYNC := (Mux(((PixelCount >= H_Pluse) && (PixelCount <= (PixelForHS-H_FrontPorch.asUInt))), "b0".U(1.W), "b1".U(1.W)) =/= 0.U)
@@ -75,5 +67,6 @@ class VGAMod() extends RawModule {
   LCD_R := Mux((PixelCount < 200.U), "b00000".U(5.W), (Mux(PixelCount < 240.U, "b00001".U(5.W), (Mux(PixelCount < 280.U, "b00010".U(5.W), (Mux(PixelCount < 320.U, "b00100".U(5.W), (Mux(PixelCount < 360.U, "b01000".U(5.W), (Mux(PixelCount < 400.U, "b10000".U(5.W), "b00000".U(5.W))))))))))))
   LCD_G := Mux((PixelCount < 400.U), "b000000".U(6.W), (Mux(PixelCount < 440.U, "b000001".U(6.W), (Mux(PixelCount < 480.U, "b000010".U(6.W), (Mux(PixelCount < 520.U, "b000100".U(6.W), (Mux(PixelCount < 560.U, "b001000".U(6.W), (Mux(PixelCount < 600.U, "b010000".U(6.W), (Mux(PixelCount < 640.U, "b100000".U(6.W), "b000000".U(6.W))))))))))))))
   LCD_B := Mux((PixelCount < 640.U), "b00000".U(5.W), (Mux(PixelCount < 680.U, "b00001".U(5.W), (Mux(PixelCount < 720.U, "b00010".U(5.W), (Mux(PixelCount < 760.U, "b00100".U(5.W), (Mux(PixelCount < 800.U, "b01000".U(5.W), (Mux(PixelCount < 840.U, "b10000".U(5.W), "b00000".U(5.W))))))))))))
+  } // withClockAndReset(PixelClk, ~nRST)
 
 }
