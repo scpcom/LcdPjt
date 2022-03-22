@@ -20,24 +20,26 @@ class VGAMod() extends RawModule {
   val PixelCount = RegInit("b0".U(16.W))
   val LineCount = RegInit("b0".U(16.W))
 
-	//pluse include in back pluse; t=pluse, sync act; t=bp, data act; t=bp+height, data end
-  /*localparam      V_BackPorch = 16'd12; 
-	localparam      V_Pluse 	= 16'd11; 
-	localparam      HightPixel  = 16'd272;
-	localparam      V_FrontPorch= 16'd8; 
-	
-	localparam      H_BackPorch = 16'd50; 
-	localparam      H_Pluse 	= 16'd10; 
-	localparam      WidthPixel  = 16'd480;
-	localparam      H_FrontPorch= 16'd8;    */
+  //pluse include in back pluse; t=pluse, sync act; t=bp, data act; t=bp+height, data end
+  /*
+  val V_BackPorch = 12.U(16.W)
+  val V_Pluse = 11.U(16.W)
+  val HightPixel = 272.U(16.W)
+  val V_FrontPorch = 8.U(16.W)
+
+  val H_BackPorch = 50.U(16.W)
+  val H_Pluse = 10.U(16.W)
+  val WidthPixel = 480.U(16.W)
+  val H_FrontPorch = 8.U(16.W)
+  */
 
   val V_BackPorch = 0.U(16.W) //6
-  val V_Pluse: UInt = 5.U(16.W)
+  val V_Pluse = 5.U(16.W)
   val HightPixel = 480.U(16.W)
   val V_FrontPorch = 45.U(16.W) //62
 
   val H_BackPorch = 182.U(16.W) //NOTE: 高像素时钟时，增加这里的延迟，方便K210加入中断
-  val H_Pluse: UInt = 1.U(16.W)
+  val H_Pluse = 1.U(16.W)
   val WidthPixel = 800.U(16.W)
   val H_FrontPorch = 210.U(16.W)
 
