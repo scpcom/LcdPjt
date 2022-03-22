@@ -54,12 +54,9 @@ class TOP() extends RawModule {
   LCD_CLK := CLK_PIX
 
   //RGB LED TEST
-  val Count = Wire(UInt(32.W)) 
-  val rgb_data = Wire(UInt(2.W)) 
-  when( !nRST) {
-    Count := 0.U(32.W)
-    rgb_data := "b00".U(2.W)
-  } .elsewhen (Count === 100000000.U) {
+  val Count = RegInit(0.U(32.W)) 
+  val rgb_data = RegInit("b00".U(2.W)) 
+  when (Count === 100000000.U) {
     Count := "b0".U(4.W)
     rgb_data := rgb_data+"b1".U(1.W)
   } .otherwise {
