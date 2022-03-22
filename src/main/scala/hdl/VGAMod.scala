@@ -59,13 +59,17 @@ class VGAMod() extends RawModule {
   val Data_G = RegInit("b0".U(10.W))
   val Data_B = RegInit("b0".U(10.W))
 
-	//注意这里HSYNC和VSYNC负极性
-  LCD_HSYNC := (Mux(((PixelCount >= H_Pluse) && (PixelCount <= (PixelForHS-H_FrontPorch))), "b0".U(1.W), "b1".U(1.W)) =/= 0.U)
-  //assign  LCD_VSYNC = ((( LineCount  >= 0 )&&( LineCount  <= (V_Pluse-1) )) ) ? 1'b1 : 1'b0;		//这里不减一的话，图片底部会往下拖尾？
-  LCD_VSYNC := (Mux((((LineCount >= V_Pluse) && (LineCount <= (LineForVS-0.U)))), "b0".U(1.W), "b1".U(1.W)) =/= 0.U)
-  //assign  FIFO_RST  = (( PixelCount ==0)) ? 1'b1 : 1'b0;  //留给主机H_BackPorch的时间进入中断，发送数据
-  LCD_DE := (Mux(((((PixelCount >= H_BackPorch) && (PixelCount <= (PixelForHS-H_FrontPorch))) && (LineCount >= V_BackPorch)) && (LineCount <= ((LineForVS-V_FrontPorch)-1.U))), "b1".U(1.W), "b0".U(1.W)) =/= 0.U)
-  //这里不减一，会抖动
+    //注意这里HSYNC和VSYNC负极性
+    LCD_HSYNC := (Mux(((PixelCount >= H_Pluse) && (PixelCount <= (PixelForHS-H_FrontPorch))), "b0".U(1.W), "b1".U(1.W)) =/= 0.U)
+    //LCD_VSYNC := (Mux((((LineCount >= 0.U) && (LineCount <= (V_Pluse-1.U)))), "b1".U(1.W), "b0".U(1.W)) =/= 0.U) //这里不减一的话，图片底部会往下拖尾？
+    LCD_VSYNC := (Mux((((LineCount >= V_Pluse) && (LineCount <= (LineForVS-0.U)))), "b0".U(1.W), "b1".U(1.W)) =/= 0.U)
+    //FIFO_RST := Mux(((PixelCount === 0.U)), "b1".U(1.W), "b0".U(1.W)) //留给主机H_BackPorch的时间进入中断，发送数据
+
+    LCD_DE := (Mux(((((PixelCount >= H_BackPorch) &&
+                      (PixelCount <= (PixelForHS-H_FrontPorch))) &&
+                      (LineCount >= V_BackPorch)) &&
+                      (LineCount <= ((LineForVS-V_FrontPorch)-1.U))), "b1".U(1.W), "b0".U(1.W)) =/= 0.U)
+                                               //这里不减一，会抖动
 
     LCD_R := Mux(PixelCount < 200.U, "b00000".U(5.W),
             (Mux(PixelCount < 240.U, "b00001".U(5.W),
