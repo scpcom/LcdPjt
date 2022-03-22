@@ -33,11 +33,14 @@ class PLL(val pm: Map[String, Param]) extends BlackBox(pm){
     })
 }
 
+//Gowin_PLL^M
 class Gowin_PLL() extends RawModule {
-
-  val clkout = IO(Output(Clock()))
-  val clkoutd = IO(Output(Clock()))
-  val clkin = IO(Input(Clock()))
+    val io = IO(new Bundle{
+        val clkout = Output(Clock())
+        val lock = Output(Bool())
+        val clkoutd = Output(Clock())
+        val clkin = Input(Clock())
+    })
 
   val pm: Map[String, Param] = Map(
   "FCLKIN" -> "24",
@@ -63,23 +66,24 @@ class Gowin_PLL() extends RawModule {
   "CLKOUTD3_SRC" -> "CLKOUT",
   "DEVICE" -> "GW1N-1")
 
-  val lock_o = Wire(Bool()) 
   val clkoutp_o = Wire(Clock())
   val clkoutd3_o = Wire(Clock())
   val gw_gnd = Wire(Bool()) 
   gw_gnd := false.B
 
   val pll_inst = Module(new PLL(pm))
-  clkout := pll_inst.io.CLKOUT
-  pll_inst.io.LOCK <> lock_o
-  pll_inst.io.CLKOUTP <> clkoutp_o
-  clkoutd := pll_inst.io.CLKOUTD
-  pll_inst.io.CLKOUTD3 <> clkoutd3_o
+
+  io.clkout := pll_inst.io.CLKOUT
+  io.lock := pll_inst.io.LOCK
+  clkoutp_o := pll_inst.io.CLKOUTP
+  io.clkoutd := pll_inst.io.CLKOUTD
+  clkoutd3_o := pll_inst.io.CLKOUTD3
+
   pll_inst.io.RESET := gw_gnd
   pll_inst.io.RESET_P := gw_gnd
   pll_inst.io.RESET_I := gw_gnd
   pll_inst.io.RESET_S := gw_gnd
-  pll_inst.io.CLKIN := clkin
+  pll_inst.io.CLKIN := io.clkin
   pll_inst.io.CLKFB := gw_gnd
   pll_inst.io.FBDSEL := Cat(gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd)
   pll_inst.io.IDSEL := Cat(gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd,gw_gnd)
@@ -87,5 +91,4 @@ class Gowin_PLL() extends RawModule {
   pll_inst.io.PSDA := Cat(gw_gnd,gw_gnd,gw_gnd,gw_gnd)
   pll_inst.io.DUTYDA := Cat(gw_gnd,gw_gnd,gw_gnd,gw_gnd)
   pll_inst.io.FDLY := Cat(gw_gnd,gw_gnd,gw_gnd,gw_gnd)
-
-} //Gowin_PLL
+}

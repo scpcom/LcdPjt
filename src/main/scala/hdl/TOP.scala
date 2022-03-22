@@ -29,12 +29,12 @@ class TOP() extends RawModule {
   val oscout_o = Wire(Clock())
   //使用内部时钟
   val chip_osc = Module(new Gowin_OSC) //Use internal clock
-  oscout_o := chip_osc.oscout //output oscout
+  oscout_o := chip_osc.io.oscout //output oscout
   */
   val chip_pll = Module(new Gowin_PLL)
-  CLK_SYS := chip_pll.clkout //output clkout      //200M
-  CLK_PIX := chip_pll.clkoutd //output clkoutd   //33.33M
-  chip_pll.clkin := XTAL_IN //input clkin
+  CLK_SYS := chip_pll.io.clkout //output clkout      //200M
+  CLK_PIX := chip_pll.io.clkoutd //output clkoutd   //33.33M
+  chip_pll.io.clkin := XTAL_IN //input clkin
 
 
 

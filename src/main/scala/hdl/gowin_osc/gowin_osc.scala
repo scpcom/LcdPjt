@@ -13,19 +13,20 @@ import chisel3.experimental.Param
 class OSCH(val pm: Map[String, Param]) extends BlackBox(pm){
     val io = IO(new Bundle{
         val OSCOUT = Output(Clock())
-
     })
 }
 
+//Gowin_OSC^M
 class Gowin_OSC() extends RawModule {
-
-  val oscout = IO(Output(Clock()))
+    val io = IO(new Bundle{
+        val oscout = Output(Clock())
+    })
 
   val om: Map[String, Param] = Map(
   "FREQ_DIV" -> 10,
   "DEVICE" -> "GW1N-1")
 
   val osc_inst = Module(new OSCH(om))
-  oscout := osc_inst.io.OSCOUT
 
-} //Gowin_OSC
+  io.oscout := osc_inst.io.OSCOUT
+}
