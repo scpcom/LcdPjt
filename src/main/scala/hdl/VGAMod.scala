@@ -66,9 +66,28 @@ class VGAMod() extends RawModule {
   //assign  FIFO_RST  = (( PixelCount ==0)) ? 1'b1 : 1'b0;  //留给主机H_BackPorch的时间进入中断，发送数据
   LCD_DE := (Mux(((((PixelCount >= H_BackPorch) && (PixelCount <= (PixelForHS-H_FrontPorch))) && (LineCount >= V_BackPorch)) && (LineCount <= ((LineForVS-V_FrontPorch)-1.U))), "b1".U(1.W), "b0".U(1.W)) =/= 0.U)
   //这里不减一，会抖动
-  LCD_R := Mux((PixelCount < 200.U), "b00000".U(5.W), (Mux(PixelCount < 240.U, "b00001".U(5.W), (Mux(PixelCount < 280.U, "b00010".U(5.W), (Mux(PixelCount < 320.U, "b00100".U(5.W), (Mux(PixelCount < 360.U, "b01000".U(5.W), (Mux(PixelCount < 400.U, "b10000".U(5.W), "b00000".U(5.W))))))))))))
-  LCD_G := Mux((PixelCount < 400.U), "b000000".U(6.W), (Mux(PixelCount < 440.U, "b000001".U(6.W), (Mux(PixelCount < 480.U, "b000010".U(6.W), (Mux(PixelCount < 520.U, "b000100".U(6.W), (Mux(PixelCount < 560.U, "b001000".U(6.W), (Mux(PixelCount < 600.U, "b010000".U(6.W), (Mux(PixelCount < 640.U, "b100000".U(6.W), "b000000".U(6.W))))))))))))))
-  LCD_B := Mux((PixelCount < 640.U), "b00000".U(5.W), (Mux(PixelCount < 680.U, "b00001".U(5.W), (Mux(PixelCount < 720.U, "b00010".U(5.W), (Mux(PixelCount < 760.U, "b00100".U(5.W), (Mux(PixelCount < 800.U, "b01000".U(5.W), (Mux(PixelCount < 840.U, "b10000".U(5.W), "b00000".U(5.W))))))))))))
+
+    LCD_R := Mux(PixelCount < 200.U, "b00000".U(5.W),
+            (Mux(PixelCount < 240.U, "b00001".U(5.W),
+            (Mux(PixelCount < 280.U, "b00010".U(5.W),
+            (Mux(PixelCount < 320.U, "b00100".U(5.W),
+            (Mux(PixelCount < 360.U, "b01000".U(5.W),
+            (Mux(PixelCount < 400.U, "b10000".U(5.W), "b00000".U(5.W))))))))))))
+
+    LCD_G := Mux(PixelCount < 400.U, "b000000".U(6.W),
+            (Mux(PixelCount < 440.U, "b000001".U(6.W),
+            (Mux(PixelCount < 480.U, "b000010".U(6.W),
+            (Mux(PixelCount < 520.U, "b000100".U(6.W),
+            (Mux(PixelCount < 560.U, "b001000".U(6.W),
+            (Mux(PixelCount < 600.U, "b010000".U(6.W),
+            (Mux(PixelCount < 640.U, "b100000".U(6.W), "b000000".U(6.W))))))))))))))
+
+    LCD_B := Mux(PixelCount < 640.U, "b00000".U(5.W),
+            (Mux(PixelCount < 680.U, "b00001".U(5.W),
+            (Mux(PixelCount < 720.U, "b00010".U(5.W),
+            (Mux(PixelCount < 760.U, "b00100".U(5.W),
+            (Mux(PixelCount < 800.U, "b01000".U(5.W),
+            (Mux(PixelCount < 840.U, "b10000".U(5.W), "b00000".U(5.W))))))))))))
   } // withClockAndReset(PixelClk, ~nRST)
 
 }
