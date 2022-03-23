@@ -23,9 +23,7 @@ class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
   val LCD_G = IO(Output(UInt(6.W)))
   val LCD_B = IO(Output(UInt(5.W)))
 
-  val LED_R = IO(Output(Bool()))
-  val LED_G = IO(Output(Bool()))
-  val LED_B = IO(Output(Bool()))
+  val LED = IO(Output(UInt(3.W)))
   val KEY = IO(Input(Bool()))
 
   val CLK_SYS = Wire(Clock())
@@ -74,9 +72,9 @@ class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
   } .otherwise {
     Count := Count+"b1".U(1.W)
   }
-  LED_R :=  ~(rgb_data === "b01".U(2.W))
-  LED_G :=  ~(rgb_data === "b10".U(2.W))
-  LED_B :=  ~(rgb_data === "b11".U(2.W))
+  LED :=  ~(rgb_data === "b01".U(2.W)) ##
+          ~(rgb_data === "b10".U(2.W)) ##
+          ~(rgb_data === "b11".U(2.W))
   } // withClockAndReset(CLK_SYS, ~nRST)
 
 }
