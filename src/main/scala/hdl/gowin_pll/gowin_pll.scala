@@ -11,6 +11,15 @@ import chisel3.experimental.Param
 //Part Number: GW1N-LV1QN48C6/I5
 //Created Time: Fri Oct 25 15:23:07 2019
 
+class Video_PLL() extends RawModule {
+    val io = IO(new Bundle{
+        val clkout = Output(Clock())
+        val lock = Output(Bool())
+        val clkoutd = Output(Clock())
+        val clkin = Input(Clock())
+    })
+}
+
 class PLL(val pm: Map[String, Param]) extends BlackBox(pm){
     val io = IO(new Bundle{
         val CLKOUT = Output(Clock())
@@ -34,14 +43,7 @@ class PLL(val pm: Map[String, Param]) extends BlackBox(pm){
 }
 
 //Gowin_PLL^M
-class Gowin_PLL() extends RawModule {
-    val io = IO(new Bundle{
-        val clkout = Output(Clock())
-        val lock = Output(Bool())
-        val clkoutd = Output(Clock())
-        val clkin = Input(Clock())
-    })
-
+class Gowin_PLL() extends Video_PLL {
   val pm: Map[String, Param] = Map(
   "FCLKIN" -> "24",
   "DYN_IDIV_SEL" -> "false",
