@@ -4,7 +4,7 @@ package gowin_rpll
 import chisel3._
 import chisel3.util.Cat
 import chisel3.experimental.Param
-import hdl.gowin_pll.Video_PLL
+import hdl.gowin_pll.{PLLParams, Video_PLL}
 //Copyright (C)2014-2021 Gowin Semiconductor Corporation.
 //All rights reserved.
 //File Title: IP file
@@ -34,17 +34,17 @@ class rPLL(val pm: Map[String, Param]) extends BlackBox(pm){
 }
 
 //Gowin_rPLL^M
-class Gowin_rPLL() extends Video_PLL {
+class Gowin_rPLL(pp: PLLParams = PLLParams(IDIV_SEL = 4, FBDIV_SEL = 36, ODIV_SEL = 4, DYN_SDIV_SEL = 6, DYN_DA_EN = "true")) extends Video_PLL {
   val pm: Map[String, Param] = Map(
   "FCLKIN" -> "27",
   "DYN_IDIV_SEL" -> "false",
-  "IDIV_SEL" -> 4,
+  "IDIV_SEL" -> pp.IDIV_SEL,
   "DYN_FBDIV_SEL" -> "false",
-  "FBDIV_SEL" -> 36,
+  "FBDIV_SEL" -> pp.FBDIV_SEL,
   "DYN_ODIV_SEL" -> "false",
-  "ODIV_SEL" -> 4,
+  "ODIV_SEL" -> pp.ODIV_SEL,
   "PSDA_SEL" -> "0000",
-  "DYN_DA_EN" -> "true",
+  "DYN_DA_EN" -> pp.DYN_DA_EN,
   "DUTYDA_SEL" -> "1000",
   "CLKOUT_FT_DIR" -> "1'b1",
   "CLKOUTP_FT_DIR" -> "1'b1",
@@ -54,7 +54,7 @@ class Gowin_rPLL() extends Video_PLL {
   "CLKOUT_BYPASS" -> "false",
   "CLKOUTP_BYPASS" -> "false",
   "CLKOUTD_BYPASS" -> "false",
-  "DYN_SDIV_SEL" -> 6,
+  "DYN_SDIV_SEL" -> pp.DYN_SDIV_SEL,
   "CLKOUTD_SRC" -> "CLKOUT",
   "CLKOUTD3_SRC" -> "CLKOUT",
   )
