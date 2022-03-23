@@ -1,8 +1,10 @@
 LcdPjt
 =======
 
-Chisel translation of [Tang-Nano-examples/lcd_pjt](https://github.com/sipeed/Tang-Nano-examples/tree/master/example_lcd/lcd_pjt)  
-and [TangNano-1K-examples/lcd_pjt](https://github.com/sipeed/TangNano-1K-examples/tree/master/example_lcd/lcd_pjt)
+Chisel translation of  
+[Tang-Nano-examples/lcd_pjt](https://github.com/sipeed/Tang-Nano-examples/tree/master/example_lcd/lcd_pjt),  
+[TangNano-1K-examples/lcd_pjt](https://github.com/sipeed/TangNano-1K-examples/tree/master/example_lcd/lcd_pjt) and  
+[TangNano-9K-example/lcd_led](https://github.com/sipeed/TangNano-9K-example/tree/main/lcd_led)  
 
 ## Build this Chisel3 project
 

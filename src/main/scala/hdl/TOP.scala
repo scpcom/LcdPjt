@@ -4,12 +4,13 @@ import chisel3._
 import chisel3.util.Cat
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 //import hdl.gowin_osc.Gowin_OSC
-import hdl.gowin_pll.{Gowin_PLL, Video_PLL}
+import hdl.gowin_pll.{Gowin_PLL, PLLParams, Video_PLL}
 import hdl.gowin_rpll.Gowin_rPLL
 
 sealed trait DeviceType
 case object dtGW1N1 extends DeviceType
 case object dtGW1NZ1 extends DeviceType
+case object dtGW1NR9 extends DeviceType
 
 class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
   val nRST = IO(Input(Bool()))
@@ -38,8 +39,12 @@ class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
   def get_pll(): Video_PLL = {
     if (dt == dtGW1N1)
       Module(new Gowin_PLL)
-    else
+    else if (dt == dtGW1NZ1)
       Module(new Gowin_rPLL)
+    else
+      Module(new Gowin_rPLL(PLLParams(
+        IDIV_SEL = 4, FBDIV_SEL = 23, ODIV_SEL = 4, DYN_SDIV_SEL = 4,
+        DYN_DA_EN = "false")))
   }
   val chip_pll = get_pll
   CLK_SYS := chip_pll.io.clkout //output clkout      //200M
@@ -87,11 +92,15 @@ object TOPGen extends App {
       devtype = dtGW1N1
     else if ((arg == "GW1NZ-1") || (arg == "tangnano1k"))
       devtype = dtGW1NZ1
+    else if ((arg == "GW1NR-9") || (arg == "tangnano9k"))
+      devtype = dtGW1NR9
   }
   if (devtype == dtGW1N1)
     println("Building for tangnano")
   else if (devtype == dtGW1NZ1)
     println("Building for tangnano1k")
+  else if (devtype == dtGW1NR9)
+    println("Building for tangnano9k")
 
   (new ChiselStage).execute(args,
     Seq(ChiselGeneratorAnnotation(() => new TOP(devtype))))
