@@ -13,6 +13,9 @@ case object dtGW1NZ1 extends DeviceType
 case object dtGW1NR9 extends DeviceType
 
 class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
+  val nleds = if (dt == dtGW1NR9) 2 else 1
+  val nbits = nleds * 3
+
   val nRST = IO(Input(Bool()))
   val XTAL_IN = IO(Input(Clock()))
 
@@ -24,7 +27,7 @@ class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
   val LCD_G = IO(Output(UInt(6.W)))
   val LCD_B = IO(Output(UInt(5.W)))
 
-  val LED = IO(Output(UInt(3.W)))
+  val LED = IO(Output(UInt(nbits.W)))
   val User_Button = IO(Input(Bool()))
 
   val CLK_SYS = Wire(Clock())
@@ -69,17 +72,16 @@ class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
   LCD_CLK := CLK_PIX
 
   //RGB LED TEST
-  val Count = RegInit(0.U(32.W)) 
-  val rgb_data = RegInit("b00".U(2.W)) 
-  when (Count === 100000000.U) {
-    Count := "b0".U(4.W)
-    rgb_data := rgb_data+"b1".U(1.W)
+  val cnmax = (100000000 / nleds).U // 9k with XTAL_IN: "d400_0000".U(24.W), 1k with XTAL_IN: "d1350_0000".U(31.W)
+  val counter = RegInit(0.U(32.W))
+  val ledbits = RegInit(("b"+"1"*(nbits-1)+"0").U(nbits.W)) // 9k "b111110".U(6.W), 1k "b110".U(3.W)
+  when (counter < cnmax) { // 0.5s delay
+    counter := counter+"b1".U(1.W)
   } .otherwise {
-    Count := Count+"b1".U(1.W)
+    counter := "b0".U(31.W)
+    ledbits := Cat(ledbits(nbits-2,0), ledbits(nbits-1))
   }
-  LED :=  ~(rgb_data === "b01".U(2.W)) ##
-          ~(rgb_data === "b10".U(2.W)) ##
-          ~(rgb_data === "b11".U(2.W))
+  LED := ledbits
   } // withClockAndReset(CLK_SYS, ~nRST)
 
 }
