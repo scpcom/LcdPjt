@@ -24,7 +24,7 @@ class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
   val LCD_B = IO(Output(UInt(5.W)))
 
   val LED = IO(Output(UInt(3.W)))
-  val KEY = IO(Input(Bool()))
+  val User_Button = IO(Input(Bool()))
 
   val CLK_SYS = Wire(Clock())
   val CLK_PIX = Wire(Clock())
