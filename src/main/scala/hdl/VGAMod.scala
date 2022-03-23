@@ -60,6 +60,9 @@ class VGAMod() extends RawModule {
   val WidthPixel = vp.H_DISPLAY.U(16.W)
   val H_FrontPorch = vp.H_FRONT.U(16.W)
 
+  val BarCount = RegInit(5.U(16.W))
+  val Width_bar = (WidthPixel+H_BackPorch) / (BarCount+17.U) //45.U
+
   val PixelForHS = (WidthPixel+H_BackPorch)+H_FrontPorch
   val LineForVS = (HightPixel+V_BackPorch)+V_FrontPorch
   when (PixelCount === PixelForHS) {
@@ -88,6 +91,7 @@ class VGAMod() extends RawModule {
                       (LineCount <= ((LineForVS-V_FrontPorch)-1.U))), "b1".U(1.W), "b0".U(1.W)) =/= 0.U)
                                                //这里不减一，会抖动
 
+    /*
     LCD_R := Mux(PixelCount < 200.U, "b00000".U(5.W),
             (Mux(PixelCount < 240.U, "b00001".U(5.W),
             (Mux(PixelCount < 280.U, "b00010".U(5.W),
@@ -109,6 +113,28 @@ class VGAMod() extends RawModule {
             (Mux(PixelCount < 760.U, "b00100".U(5.W),
             (Mux(PixelCount < 800.U, "b01000".U(5.W),
             (Mux(PixelCount < 840.U, "b10000".U(5.W), "b00000".U(5.W))))))))))))
-  } // withClockAndReset(PixelClk, ~nRST)
+    */
 
+    LCD_R := Mux(PixelCount < (Width_bar*(BarCount+0.U)), "b00000".U(5.W),
+            (Mux(PixelCount < (Width_bar*(BarCount+1.U)), "b00001".U(5.W),
+            (Mux(PixelCount < (Width_bar*(BarCount+2.U)), "b00010".U(5.W),
+            (Mux(PixelCount < (Width_bar*(BarCount+3.U)), "b00100".U(5.W),
+            (Mux(PixelCount < (Width_bar*(BarCount+4.U)), "b01000".U(5.W),
+            (Mux(PixelCount < (Width_bar*(BarCount+5.U)), "b10000".U(5.W), "b00000".U(5.W))))))))))))
+
+    LCD_G := Mux(PixelCount < (Width_bar*(BarCount+5.U)), "b000000".U(6.W),
+            (Mux(PixelCount < (Width_bar*(BarCount+6.U)), "b000001".U(6.W),
+            (Mux(PixelCount < (Width_bar*(BarCount+7.U)), "b000010".U(6.W),
+            (Mux(PixelCount < (Width_bar*(BarCount+8.U)), "b000100".U(6.W),
+            (Mux(PixelCount < (Width_bar*(BarCount+9.U)), "b001000".U(6.W),
+            (Mux(PixelCount < (Width_bar*(BarCount+10.U)), "b010000".U(6.W),
+            (Mux(PixelCount < (Width_bar*(BarCount+11.U)), "b100000".U(6.W), "b000000".U(6.W))))))))))))))
+
+    LCD_B := Mux(PixelCount < (Width_bar*(BarCount+11.U)), "b00000".U(5.W),
+            (Mux(PixelCount < (Width_bar*(BarCount+12.U)), "b00001".U(5.W),
+            (Mux(PixelCount < (Width_bar*(BarCount+13.U)), "b00010".U(5.W),
+            (Mux(PixelCount < (Width_bar*(BarCount+14.U)), "b00100".U(5.W),
+            (Mux(PixelCount < (Width_bar*(BarCount+15.U)), "b01000".U(5.W),
+            (Mux(PixelCount < (Width_bar*(BarCount+16.U)), "b10000".U(5.W), "b00000".U(5.W))))))))))))
+  } // withClockAndReset(PixelClk, ~nRST)
 }
