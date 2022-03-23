@@ -57,7 +57,7 @@ class Gowin_rPLL() extends Video_PLL {
   "DYN_SDIV_SEL" -> 6,
   "CLKOUTD_SRC" -> "CLKOUT",
   "CLKOUTD3_SRC" -> "CLKOUT",
-  "DEVICE" -> "GW1NZ-1")
+  )
 
   val clkoutp_o = Wire(Clock())
   val clkoutd3_o = Wire(Clock())

@@ -24,7 +24,7 @@ class Gowin_OSC() extends RawModule {
 
   val om: Map[String, Param] = Map(
   "FREQ_DIV" -> 10,
-  "DEVICE" -> "GW1N-1")
+  )
 
   val osc_inst = Module(new OSCH(om))
 
