@@ -60,6 +60,15 @@ sbt publishLocal
 cd ..
 ```
 
+- [HdmiCore](https://github.com/Martoni/HdmiCore):
+
+```Shell
+git clone https://github.com/Martoni/HdmiCore
+cd HdmiCore
+sbt publishLocal
+cd ..
+```
+
 ### How to get started
 
 #### Clone this repository

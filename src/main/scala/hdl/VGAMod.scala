@@ -1,6 +1,7 @@
 package hdl
 
 import chisel3._
+import hdmicore.video.{VideoParams}
 
 class VGAMod() extends RawModule {
   val CLK = IO(Input(Clock()))
@@ -22,26 +23,42 @@ class VGAMod() extends RawModule {
 
   //pluse include in back pluse; t=pluse, sync act; t=bp, data act; t=bp+height, data end
   /*
-  val V_BackPorch = 12.U(16.W)
-  val V_Pluse = 11.U(16.W)
-  val HightPixel = 272.U(16.W)
-  val V_FrontPorch = 8.U(16.W)
+  val vp = VideoParams(
+        V_BOTTOM = 12,
+        V_BACK = 12,
+        V_SYNC = 11,
+        V_DISPLAY = 272,
+        V_TOP = 8,
 
-  val H_BackPorch = 50.U(16.W)
-  val H_Pluse = 10.U(16.W)
-  val WidthPixel = 480.U(16.W)
-  val H_FrontPorch = 8.U(16.W)
+        H_BACK = 50,
+        H_SYNC = 10,
+        H_DISPLAY = 480,
+        H_FRONT = 8,
+    )
   */
 
-  val V_BackPorch = 0.U(16.W) //6
-  val V_Pluse = 5.U(16.W)
-  val HightPixel = 480.U(16.W)
-  val V_FrontPorch = 45.U(16.W) //62
+  val vp = VideoParams(
+        V_BOTTOM = 0,
+        V_BACK = 0, //6
+        V_SYNC = 5,
+        V_DISPLAY = 480,
+        V_TOP = 45, //62
 
-  val H_BackPorch = 182.U(16.W) //NOTE: 高像素时钟时，增加这里的延迟，方便K210加入中断
-  val H_Pluse = 1.U(16.W)
-  val WidthPixel = 800.U(16.W)
-  val H_FrontPorch = 210.U(16.W)
+        H_BACK = 182, //NOTE: 高像素时钟时，增加这里的延迟，方便K210加入中断
+        H_SYNC = 1,
+        H_DISPLAY = 800,
+        H_FRONT = 210,
+    )
+
+  val V_BackPorch = vp.V_BACK.U(16.W)
+  val V_Pluse = vp.V_SYNC.U(16.W)
+  val HightPixel = vp.V_DISPLAY.U(16.W)
+  val V_FrontPorch = vp.V_TOP.U(16.W)
+
+  val H_BackPorch = vp.H_BACK.U(16.W)
+  val H_Pluse = vp.H_SYNC.U(16.W)
+  val WidthPixel = vp.H_DISPLAY.U(16.W)
+  val H_FrontPorch = vp.H_FRONT.U(16.W)
 
   val PixelForHS = (WidthPixel+H_BackPorch)+H_FrontPorch
   val LineForVS = (HightPixel+V_BackPorch)+V_FrontPorch
