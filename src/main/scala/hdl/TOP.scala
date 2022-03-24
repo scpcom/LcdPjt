@@ -43,7 +43,10 @@ class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
     if (dt == dtGW1N1)
       Module(new Gowin_PLL)
     else if (dt == dtGW1NZ1)
-      Module(new Gowin_rPLL)
+      Module(new Gowin_rPLL(PLLParams(
+        IDIV_SEL = 4, FBDIV_SEL = 36,
+        ODIV_SEL = 4, DYN_SDIV_SEL = 6,
+        DYN_DA_EN = "true")))
     else
       Module(new Gowin_rPLL(PLLParams(
         IDIV_SEL = 4, FBDIV_SEL = 23, ODIV_SEL = 4, DYN_SDIV_SEL = 4,
