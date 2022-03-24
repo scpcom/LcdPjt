@@ -61,7 +61,7 @@ class VGAMod() extends RawModule {
   val H_FrontPorch = vp.H_FRONT.U(16.W)
 
   val BarCount = RegInit(5.U(16.W))
-  val Width_bar = (WidthPixel+H_BackPorch) / (BarCount+17.U) //45.U
+  val Width_bar = (WidthPixel+H_BackPorch) / (BarCount+17.U) // 1k: 40.U 9k: 45.U
 
   val PixelForHS = (WidthPixel+H_BackPorch)+H_FrontPorch
   val LineForVS = (HightPixel+V_BackPorch)+V_FrontPorch
