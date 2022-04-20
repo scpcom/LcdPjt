@@ -1,9 +1,9 @@
 package hdl
 
 import chisel3._
-import hdmicore.video.{VideoParams}
+import hdmicore.video.{VideoParams,HVSync}
 
-class VGAMod() extends RawModule {
+class VGAMod(vp: VideoParams) extends RawModule {
   val CLK = IO(Input(Clock()))
   val nRST = IO(Input(Bool()))
 
@@ -20,35 +20,6 @@ class VGAMod() extends RawModule {
   withClockAndReset(PixelClk, ~nRST) {
   val PixelCount = RegInit("b0".U(16.W))
   val LineCount = RegInit("b0".U(16.W))
-
-  //pluse include in back pluse; t=pluse, sync act; t=bp, data act; t=bp+height, data end
-  /*
-  val vp = VideoParams(
-        V_BOTTOM = 12,
-        V_BACK = 12,
-        V_SYNC = 11,
-        V_DISPLAY = 272,
-        V_TOP = 8,
-
-        H_BACK = 50,
-        H_SYNC = 10,
-        H_DISPLAY = 480,
-        H_FRONT = 8,
-    )
-  */
-
-  val vp = VideoParams(
-        V_BOTTOM = 0,
-        V_BACK = 0, //6
-        V_SYNC = 5,
-        V_DISPLAY = 480,
-        V_TOP = 45, //62
-
-        H_BACK = 182, //NOTE: 高像素时钟时，增加这里的延迟，方便K210加入中断
-        H_SYNC = 1,
-        H_DISPLAY = 800,
-        H_FRONT = 210,
-    )
 
   val V_BackPorch = vp.V_BACK.U(16.W)
   val V_Pluse = vp.V_SYNC.U(16.W)

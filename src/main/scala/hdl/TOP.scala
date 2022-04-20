@@ -4,6 +4,7 @@ import chisel3._
 import chisel3.util.Cat
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 import fpgamacro.gowin.{Gowin_OSC, Gowin_PLL, Gowin_rPLL, PLLParams, Video_PLL}
+import hdmicore.video.{VideoParams}
 
 sealed trait DeviceType
 case object dtGW1N1 extends DeviceType
@@ -31,6 +32,35 @@ class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
   val CLK_SYS = Wire(Clock())
   val CLK_PIX = Wire(Clock())
 
+  //pluse include in back pluse; t=pluse, sync act; t=bp, data act; t=bp+height, data end
+  /*
+  val vp = VideoParams(
+        V_BOTTOM = 12,
+        V_BACK = 12,
+        V_SYNC = 11,
+        V_DISPLAY = 272,
+        V_TOP = 8,
+
+        H_BACK = 50,
+        H_SYNC = 10,
+        H_DISPLAY = 480,
+        H_FRONT = 8,
+    )
+  */
+
+  val vp = VideoParams(
+        V_BOTTOM = 0,
+        V_BACK = 0, //6
+        V_SYNC = 5,
+        V_DISPLAY = 480,
+        V_TOP = 45, //62
+
+        H_BACK = 182, //NOTE: 高像素时钟时，增加这里的延迟，方便K210加入中断
+        H_SYNC = 1,
+        H_DISPLAY = 800,
+        H_FRONT = 210,
+    )
+
   /*
   val oscout_o = Wire(Clock())
   //使用内部时钟
@@ -53,7 +83,7 @@ class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
 
 
   withClockAndReset(CLK_SYS, ~nRST){
-  val D1 = Module(new VGAMod)
+  val D1 = Module(new VGAMod(vp))
   D1.CLK := CLK_SYS
   D1.nRST := nRST
 
