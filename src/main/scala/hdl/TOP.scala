@@ -88,13 +88,13 @@ class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
   D1.io.I_rst_n := nRST
 
   D1.io.I_pxl_clk := CLK_PIX
-  LCD_DEN := D1.io.LCD_DE
-  LCD_HYNC := D1.io.LCD_HSYNC
-  LCD_SYNC := D1.io.LCD_VSYNC
+  LCD_DEN := D1.io.videoSig.de
+  LCD_HYNC := D1.io.videoSig.hsync
+  LCD_SYNC := D1.io.videoSig.vsync
 
-  LCD_B := D1.io.LCD_B
-  LCD_G := D1.io.LCD_G
-  LCD_R := D1.io.LCD_R
+  LCD_B := D1.io.videoSig.pixel.blue(7,3)
+  LCD_G := D1.io.videoSig.pixel.green(7,2)
+  LCD_R := D1.io.videoSig.pixel.red(7,3)
   LCD_CLK := CLK_PIX
 
   //RGB LED TEST

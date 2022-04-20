@@ -1,6 +1,8 @@
 package hdl
 
 import chisel3._
+import chisel3.util.Cat
+import hdmicore.{VideoHdmi}
 import hdmicore.video.{VideoParams,HVSync}
 
 class VGAMod(vp: VideoParams) extends RawModule {
@@ -8,14 +10,7 @@ class VGAMod(vp: VideoParams) extends RawModule {
     val I_clk = Input(Clock())
     val I_rst_n = Input(Bool())
     val I_pxl_clk = Input(Clock())
-
-    val LCD_DE = Output(Bool())
-    val LCD_HSYNC = Output(Bool())
-    val LCD_VSYNC = Output(Bool())
-
-    val LCD_B = Output(UInt(5.W))
-    val LCD_G = Output(UInt(6.W))
-    val LCD_R = Output(UInt(5.W))
+    val videoSig = Output(new VideoHdmi())
   })
 
   withClockAndReset(io.I_pxl_clk, ~io.I_rst_n) {
@@ -117,11 +112,11 @@ class VGAMod(vp: VideoParams) extends RawModule {
             (Mux(PixelCount < (Width_bar*(BarCount+15.U)), "b01000".U(5.W),
             (Mux(PixelCount < (Width_bar*(BarCount+16.U)), "b10000".U(5.W), "b00000".U(5.W))))))))))))
 
-    io.LCD_DE :=  VGA_DE
-    io.LCD_HSYNC := VGA_HSYNC
-    io.LCD_VSYNC := VGA_VSYNC
-    io.LCD_R := VGA_R
-    io.LCD_G := VGA_G
-    io.LCD_B := VGA_B
+    io.videoSig.de := VGA_DE
+    io.videoSig.hsync := VGA_HSYNC
+    io.videoSig.vsync := VGA_VSYNC
+    io.videoSig.pixel.red   := Mux(VGA_DE, Cat(VGA_R, 0.U(3.W)), "h00".U(8.W))
+    io.videoSig.pixel.green := Mux(VGA_DE, Cat(VGA_G, 0.U(2.W)), "h00".U(8.W))
+    io.videoSig.pixel.blue  := Mux(VGA_DE, Cat(VGA_B, 0.U(3.W)), "hff".U(8.W))
   } // withClockAndReset(io.I_pxl_clk, ~io.I_rst_n)
 }
