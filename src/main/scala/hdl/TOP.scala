@@ -38,16 +38,12 @@ class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
   oscout_o := chip_osc.io.oscout //output oscout
   */
   def get_pll(): Video_PLL = {
+    /* 27 MHz * (36+1) / (4+1) = 199.8 MHz / 6 = 33.3 MHz ; 199.8 MHz / 5 = 39.96 MHz */
+    val p39960khz  = PLLParams(IDIV_SEL = 4, FBDIV_SEL = 36, ODIV_SEL = 4, DYN_SDIV_SEL = 6)
     if (dt == dtGW1N1)
       Module(new Gowin_PLL)
-    else if (dt == dtGW1NZ1)
-      Module(new Gowin_rPLL(PLLParams(
-        IDIV_SEL = 4, FBDIV_SEL = 36,
-        ODIV_SEL = 4, DYN_SDIV_SEL = 6)))
     else
-      Module(new Gowin_rPLL(PLLParams(
-        IDIV_SEL = 4, FBDIV_SEL = 23,
-        ODIV_SEL = 4, DYN_SDIV_SEL = 4)))
+      Module(new Gowin_rPLL(p39960khz))
   }
   val chip_pll = get_pll
   CLK_SYS := chip_pll.io.clkout //output clkout      //200M
