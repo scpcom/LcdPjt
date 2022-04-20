@@ -10,6 +10,8 @@ class VGAMod(vp: VideoParams) extends RawModule {
     val I_clk = Input(Clock())
     val I_rst_n = Input(Bool())
     val I_pxl_clk = Input(Clock())
+    val I_rd_hres = Input(UInt(12.W)) //hor resolution
+    val I_rd_vres = Input(UInt(12.W)) //ver resolution
     val videoSig = Output(new VideoHdmi())
   })
 
@@ -36,7 +38,7 @@ class VGAMod(vp: VideoParams) extends RawModule {
   val H_FrontPorch = vp.H_FRONT.U(16.W)
 
   val BarCount = RegInit(5.U(16.W))
-  val Width_bar = (WidthPixel+H_BackPorch) / (BarCount+17.U) // 1k: 40.U 9k: 45.U
+  val Width_bar = (io.I_rd_hres+H_BackPorch) / (BarCount+17.U) // 1k: 40.U 9k: 45.U
 
   val PixelForHS = (WidthPixel+H_BackPorch)+H_FrontPorch
   val LineForVS = (HightPixel+V_BackPorch)+V_FrontPorch
@@ -55,15 +57,15 @@ class VGAMod(vp: VideoParams) extends RawModule {
   val Data_B = RegInit("b0".U(10.W))
 
     //注意这里HSYNC和VSYNC负极性
-    VGA_HSYNC := (Mux(((PixelCount >= H_Pluse) && (PixelCount <= (PixelForHS-H_FrontPorch))), "b0".U(1.W), "b1".U(1.W)) =/= 0.U)
+    VGA_HSYNC := (Mux(((PixelCount >= H_Pluse) && (PixelCount <= (WidthPixel+H_BackPorch))), "b0".U(1.W), "b1".U(1.W)) =/= 0.U)
     //VGA_VSYNC := (Mux((((LineCount >= 0.U) && (LineCount <= (V_Pluse-1.U)))), "b1".U(1.W), "b0".U(1.W)) =/= 0.U) //这里不减一的话，图片底部会往下拖尾？
-    VGA_VSYNC := (Mux((((LineCount >= V_Pluse) && (LineCount <= (LineForVS-0.U)))), "b0".U(1.W), "b1".U(1.W)) =/= 0.U)
+    VGA_VSYNC := (Mux((((LineCount >= V_Pluse) && (LineCount <= (HightPixel+V_BackPorch+V_FrontPorch)))), "b0".U(1.W), "b1".U(1.W)) =/= 0.U)
     //FIFO_RST := Mux(((PixelCount === 0.U)), "b1".U(1.W), "b0".U(1.W)) //留给主机H_BackPorch的时间进入中断，发送数据
 
     VGA_DE := (Mux(((((PixelCount >= H_BackPorch) &&
-                      (PixelCount <= (PixelForHS-H_FrontPorch))) &&
+                      (PixelCount <= (io.I_rd_hres+H_BackPorch))) &&
                       (LineCount >= V_BackPorch)) &&
-                      (LineCount <= ((LineForVS-V_FrontPorch)-1.U))), "b1".U(1.W), "b0".U(1.W)) =/= 0.U)
+                      (LineCount <= ((io.I_rd_vres+V_BackPorch)-1.U))), "b1".U(1.W), "b0".U(1.W)) =/= 0.U)
                                                //这里不减一，会抖动
 
     /*

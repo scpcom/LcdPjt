@@ -88,6 +88,8 @@ class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
   D1.io.I_rst_n := nRST
 
   D1.io.I_pxl_clk := CLK_PIX
+  D1.io.I_rd_hres := vp.H_DISPLAY.U
+  D1.io.I_rd_vres := vp.V_DISPLAY.U
   LCD_DEN := D1.io.videoSig.de
   LCD_HYNC := D1.io.videoSig.hsync
   LCD_SYNC := D1.io.videoSig.vsync
