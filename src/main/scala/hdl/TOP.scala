@@ -84,17 +84,17 @@ class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
 
   withClockAndReset(CLK_SYS, ~nRST){
   val D1 = Module(new VGAMod(vp))
-  D1.CLK := CLK_SYS
-  D1.nRST := nRST
+  D1.io.I_clk := CLK_SYS
+  D1.io.I_rst_n := nRST
 
-  D1.PixelClk := CLK_PIX
-  LCD_DEN := D1.LCD_DE
-  LCD_HYNC := D1.LCD_HSYNC
-  LCD_SYNC := D1.LCD_VSYNC
+  D1.io.I_pxl_clk := CLK_PIX
+  LCD_DEN := D1.io.LCD_DE
+  LCD_HYNC := D1.io.LCD_HSYNC
+  LCD_SYNC := D1.io.LCD_VSYNC
 
-  LCD_B := D1.LCD_B
-  LCD_G := D1.LCD_G
-  LCD_R := D1.LCD_R
+  LCD_B := D1.io.LCD_B
+  LCD_G := D1.io.LCD_G
+  LCD_R := D1.io.LCD_R
   LCD_CLK := CLK_PIX
 
   //RGB LED TEST
