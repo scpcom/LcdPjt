@@ -3,9 +3,7 @@ package hdl
 import chisel3._
 import chisel3.util.Cat
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
-//import hdl.gowin_osc.Gowin_OSC
-import hdl.gowin_pll.{Gowin_PLL, PLLParams, Video_PLL}
-import hdl.gowin_rpll.Gowin_rPLL
+import fpgamacro.gowin.{Gowin_OSC, Gowin_PLL, Gowin_rPLL, PLLParams, Video_PLL}
 
 sealed trait DeviceType
 case object dtGW1N1 extends DeviceType
@@ -45,12 +43,11 @@ class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
     else if (dt == dtGW1NZ1)
       Module(new Gowin_rPLL(PLLParams(
         IDIV_SEL = 4, FBDIV_SEL = 36,
-        ODIV_SEL = 4, DYN_SDIV_SEL = 6,
-        DYN_DA_EN = "true")))
+        ODIV_SEL = 4, DYN_SDIV_SEL = 6)))
     else
       Module(new Gowin_rPLL(PLLParams(
-        IDIV_SEL = 4, FBDIV_SEL = 23, ODIV_SEL = 4, DYN_SDIV_SEL = 4,
-        DYN_DA_EN = "false")))
+        IDIV_SEL = 4, FBDIV_SEL = 23,
+        ODIV_SEL = 4, DYN_SDIV_SEL = 4)))
   }
   val chip_pll = get_pll
   CLK_SYS := chip_pll.io.clkout //output clkout      //200M
