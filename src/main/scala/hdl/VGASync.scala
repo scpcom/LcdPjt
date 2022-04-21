@@ -19,28 +19,26 @@ class VGASync(val vp: VideoParams = VideoParams(
      val vpos = Output(UInt(vregsize.W))
   })
 
-  val V_BackPorch = vp.V_BACK.U(16.W)
-  val V_Pluse = vp.V_SYNC.U(16.W)
-  val HightPixel = vp.V_DISPLAY.U(16.W)
-  val V_FrontPorch = vp.V_TOP.U(16.W)
-
-  val H_BackPorch = vp.H_BACK.U(16.W)
-  val H_Pluse = vp.H_SYNC.U(16.W)
-  val WidthPixel = vp.H_DISPLAY.U(16.W)
-  val H_FrontPorch = vp.H_FRONT.U(16.W)
-
-  val PixelForHS = (WidthPixel+H_BackPorch)+H_FrontPorch
-  val LineForVS = (HightPixel+V_BackPorch)+V_FrontPorch
+  val H_DISPLAY = vp.H_DISPLAY.U(hregsize.W)  // horizontal display width
+  val H_FRONT   = vp.H_FRONT.U(hregsize.W)    // front porch
+  val H_SYNC    = vp.H_SYNC.U(hregsize.W)     // sync width
+  val H_BACK    = vp.H_BACK.U(hregsize.W)     // back porch
+  val V_SYNC    = vp.V_SYNC.U(vregsize.W)     // sync width
+  val V_TOP     = vp.V_TOP.U(vregsize.W)      // top border
+  val V_DISPLAY = vp.V_DISPLAY.U(vregsize.W)  // vertical display width
+  val V_BOTTOM  = vp.V_BOTTOM.U(vregsize.W)   // bottom border
+  val H_MAX        = H_DISPLAY + H_BACK + H_FRONT
+  val V_MAX        = V_DISPLAY + V_TOP + V_BOTTOM
 
   val hpos_count = RegInit(0.U((hregsize).W))
   val vpos_count = RegInit(0.U((vregsize).W))
   io.vpos := vpos_count
   io.hpos := hpos_count
 
-  when (hpos_count === PixelForHS) {
+  when (hpos_count === H_MAX) {
     hpos_count := "b0".U(16.W)
     vpos_count := vpos_count+"b1".U(1.W)
-  } .elsewhen (vpos_count === LineForVS) {
+  } .elsewhen (vpos_count === V_MAX) {
     vpos_count := "b0".U(16.W)
     hpos_count := "b0".U(16.W)
   } .otherwise {
@@ -48,14 +46,14 @@ class VGASync(val vp: VideoParams = VideoParams(
   }
 
   //注意这里HSYNC和VSYNC负极性
-  io.hsync := (Mux(((hpos_count >= H_Pluse) && (hpos_count <= (WidthPixel+H_BackPorch))), "b0".U(1.W), "b1".U(1.W)) =/= 0.U)
-  //io.vsync := (Mux((((vpos_count >= 0.U) && (vpos_count <= (V_Pluse-1.U)))), "b1".U(1.W), "b0".U(1.W)) =/= 0.U) //这里不减一的话，图片底部会往下拖尾？
-  io.vsync := (Mux((((vpos_count >= V_Pluse) && (vpos_count <= (HightPixel+V_BackPorch+V_FrontPorch)))), "b0".U(1.W), "b1".U(1.W)) =/= 0.U)
-  //FIFO_RST := Mux(((hpos_count === 0.U)), "b1".U(1.W), "b0".U(1.W)) //留给主机H_BackPorch的时间进入中断，发送数据
+  io.hsync := (Mux(((hpos_count >= H_SYNC) && (hpos_count <= (H_DISPLAY+H_BACK))), "b0".U(1.W), "b1".U(1.W)) =/= 0.U)
+  //io.vsync := (Mux((((vpos_count >= 0.U) && (vpos_count <= (V_SYNC-1.U)))), "b1".U(1.W), "b0".U(1.W)) =/= 0.U) //这里不减一的话，图片底部会往下拖尾？
+  io.vsync := (Mux((((vpos_count >= V_SYNC) && (vpos_count <= (V_DISPLAY+V_BOTTOM+V_TOP)))), "b0".U(1.W), "b1".U(1.W)) =/= 0.U)
+  //FIFO_RST := Mux(((hpos_count === 0.U)), "b1".U(1.W), "b0".U(1.W)) //留给主机H_BACK的时间进入中断，发送数据
 
-  io.display_on := (Mux(((((hpos_count >= H_BackPorch) &&
-                           (hpos_count <= (WidthPixel+H_BackPorch))) &&
-                           (vpos_count >= V_BackPorch)) &&
-                           (vpos_count <= ((HightPixel+V_BackPorch)-1.U))), "b1".U(1.W), "b0".U(1.W)) =/= 0.U)
+  io.display_on := (Mux(((((hpos_count >= H_BACK) &&
+                           (hpos_count <= (H_DISPLAY+H_BACK))) &&
+                           (vpos_count >= V_BOTTOM)) &&
+                           (vpos_count <= ((V_DISPLAY+V_BOTTOM)-1.U))), "b1".U(1.W), "b0".U(1.W)) =/= 0.U)
                                                //这里不减一，会抖动
 }
