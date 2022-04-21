@@ -27,7 +27,11 @@ class VGASync(val vp: VideoParams = VideoParams(
   val V_TOP     = vp.V_TOP.U(vregsize.W)      // top border
   val V_DISPLAY = vp.V_DISPLAY.U(vregsize.W)  // vertical display width
   val V_BOTTOM  = vp.V_BOTTOM.U(vregsize.W)   // bottom border
+  val H_SYNC_START = H_SYNC
+  val H_SYNC_END   = H_DISPLAY + H_BACK
   val H_MAX        = H_DISPLAY + H_BACK + H_FRONT
+  val V_SYNC_START = V_SYNC
+  val V_SYNC_END   = V_DISPLAY + V_BOTTOM + V_TOP
   val V_MAX        = V_DISPLAY + V_TOP + V_BOTTOM
 
   val hpos_count = RegInit(0.U((hregsize).W))
@@ -46,9 +50,9 @@ class VGASync(val vp: VideoParams = VideoParams(
   }
 
   //注意这里HSYNC和VSYNC负极性
-  io.hsync := (Mux(((hpos_count >= H_SYNC) && (hpos_count <= (H_DISPLAY+H_BACK))), "b0".U(1.W), "b1".U(1.W)) =/= 0.U)
+  io.hsync := ((hpos_count >= H_SYNC_START) && (hpos_count <= H_SYNC_END))
   //io.vsync := (Mux((((vpos_count >= 0.U) && (vpos_count <= (V_SYNC-1.U)))), "b1".U(1.W), "b0".U(1.W)) =/= 0.U) //这里不减一的话，图片底部会往下拖尾？
-  io.vsync := (Mux((((vpos_count >= V_SYNC) && (vpos_count <= (V_DISPLAY+V_BOTTOM+V_TOP)))), "b0".U(1.W), "b1".U(1.W)) =/= 0.U)
+  io.vsync := ((vpos_count >= V_SYNC_START) && (vpos_count <= V_SYNC_END))
   //FIFO_RST := Mux(((hpos_count === 0.U)), "b1".U(1.W), "b0".U(1.W)) //留给主机H_BACK的时间进入中断，发送数据
 
   io.display_on := (Mux(((((hpos_count >= H_BACK) &&
