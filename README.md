@@ -83,8 +83,9 @@ cd LcdPjt
 
 #### Build the project
 
+supported device type: tangnano tangnano1k tangnano9k  
 ```sh
-sbt -J-Xss256m "runMain hdl.TOPGen"
+sbt -J-Xss256m "runMain hdl.TOPGen tangnano1k"
 ```
 
 #### Generate the binary fs
@@ -96,6 +97,6 @@ Push the "Run All" button
 #### Upload to the device
 
 ```sh
-openFPGALoader -b tangnano impl/pnr/LcdPjt.fs
+openFPGALoader -b tangnano1k impl/pnr/LcdPjt.fs
 ```
 
