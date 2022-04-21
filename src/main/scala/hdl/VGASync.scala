@@ -34,30 +34,40 @@ class VGASync(val vp: VideoParams = VideoParams(
   val V_SYNC_END   = V_DISPLAY + V_BOTTOM + V_TOP
   val V_MAX        = V_DISPLAY + V_TOP + V_BOTTOM
 
+  println(s"H_DISPLAY $H_DISPLAY")
+  println(s"V_DISPLAY $V_DISPLAY")
+  println(s"hregsize $hregsize")
+  println(s"vregsize $vregsize")
+
   val hpos_count = RegInit(0.U((hregsize).W))
   val vpos_count = RegInit(0.U((vregsize).W))
   io.vpos := vpos_count
   io.hpos := hpos_count
 
-  when (hpos_count === H_MAX) {
-    hpos_count := "b0".U(16.W)
-    vpos_count := vpos_count+"b1".U(1.W)
-  } .elsewhen (vpos_count === V_MAX) {
-    vpos_count := "b0".U(16.W)
-    hpos_count := "b0".U(16.W)
-  } .otherwise {
-    hpos_count := hpos_count+"b1".U(1.W)
+  io.display_on := (hpos_count > H_BACK) &&
+                   (hpos_count < (H_DISPLAY+H_BACK)) &&
+                   (vpos_count > V_BOTTOM) &&
+                   (vpos_count < (V_DISPLAY+V_BOTTOM))
+
+  /* Horizontal counter */
+  io.hsync := !((hpos_count >= H_SYNC_START) &&
+                (hpos_count <= H_SYNC_END))
+
+  val hpos_max = hpos_count === H_MAX
+  val vpos_max = vpos_count === V_MAX
+
+  hpos_count := hpos_count + 1.U
+  when(hpos_max){
+    hpos_count := 0.U
   }
 
-  //注意这里HSYNC和VSYNC负极性
-  io.hsync := ((hpos_count >= H_SYNC_START) && (hpos_count <= H_SYNC_END))
-  //io.vsync := (Mux((((vpos_count >= 0.U) && (vpos_count <= (V_SYNC-1.U)))), "b1".U(1.W), "b0".U(1.W)) =/= 0.U) //这里不减一的话，图片底部会往下拖尾？
-  io.vsync := ((vpos_count >= V_SYNC_START) && (vpos_count <= V_SYNC_END))
-  //FIFO_RST := Mux(((hpos_count === 0.U)), "b1".U(1.W), "b0".U(1.W)) //留给主机H_BACK的时间进入中断，发送数据
-
-  io.display_on := (Mux(((((hpos_count >= H_BACK) &&
-                           (hpos_count <= (H_DISPLAY+H_BACK))) &&
-                           (vpos_count >= V_BOTTOM)) &&
-                           (vpos_count <= ((V_DISPLAY+V_BOTTOM)-1.U))), "b1".U(1.W), "b0".U(1.W)) =/= 0.U)
-                                               //这里不减一，会抖动
+  /* Vertical counter */
+  io.vsync := !((vpos_count >= V_SYNC_START) &&
+              (vpos_count <= V_SYNC_END))
+  when(hpos_max) {
+    vpos_count := vpos_count + 1.U
+    when(vpos_max) {
+      vpos_count := 0.U
+    }
+  }
 }
