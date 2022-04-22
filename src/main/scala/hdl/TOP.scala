@@ -114,6 +114,9 @@ object TOPGen extends App {
     else if ((arg == "GW1NR-9") || (arg == "tangnano9k"))
       devtype = dtGW1NR9
 
+    else if((arg == "wqvga") || (arg == "480x272")){
+      set_video_mode(480, 272, LCDConsts.m480x272)
+    }
     else if((arg == "vga-15:9") || (arg == "800x480")){
       set_video_mode(800, 480, VideoConsts.m800x480)
     }
