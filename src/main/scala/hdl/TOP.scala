@@ -4,14 +4,14 @@ import chisel3._
 import chisel3.util.Cat
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 import fpgamacro.gowin.{Gowin_OSC, Gowin_PLL, Gowin_rPLL, PLLParams, Video_PLL}
-import hdmicore.video.{VideoParams}
+import hdmicore.video.{VideoMode,VideoParams,VideoConsts}
 
 sealed trait DeviceType
 case object dtGW1N1 extends DeviceType
 case object dtGW1NZ1 extends DeviceType
 case object dtGW1NR9 extends DeviceType
 
-class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
+class TOP(dt: DeviceType = dtGW1N1, vmode: VideoMode = VideoConsts.m800x480) extends RawModule {
   val nleds = if (dt == dtGW1NR9) 2 else 1
   val nbits = nleds * 3
 
@@ -31,35 +31,6 @@ class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
 
   val CLK_SYS = Wire(Clock())
   val CLK_PIX = Wire(Clock())
-
-  //pluse include in back pluse; t=pluse, sync act; t=bp, data act; t=bp+height, data end
-  /*
-  val vp = VideoParams(
-        V_BOTTOM = 12,
-        V_BACK = 12,
-        V_SYNC = 11,
-        V_DISPLAY = 272,
-        V_TOP = 8,
-
-        H_BACK = 50,
-        H_SYNC = 10,
-        H_DISPLAY = 480,
-        H_FRONT = 8,
-    )
-  */
-
-  val vp = VideoParams(
-        V_BOTTOM = 0,
-        V_BACK = 0, //6
-        V_SYNC = 5,
-        V_DISPLAY = 480,
-        V_TOP = 45, //62
-
-        H_BACK = 182, //NOTE: 高像素时钟时，增加这里的延迟，方便K210加入中断
-        H_SYNC = 1,
-        H_DISPLAY = 800,
-        H_FRONT = 210,
-    )
 
   /*
   val oscout_o = Wire(Clock())
@@ -83,6 +54,7 @@ class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
 
 
   withClockAndReset(CLK_SYS, ~nRST){
+  val vp = vmode.params
   val D1 = Module(new VGAMod(vp))
   D1.io.I_clk := CLK_SYS
   D1.io.I_rst_n := nRST
@@ -116,6 +88,23 @@ class TOP(dt: DeviceType = dtGW1N1) extends RawModule {
 
 object TOPGen extends App {
   var devtype: DeviceType = dtGW1N1
+  var rd_width = 800
+  var rd_height = 480
+  var rd_halign = 0
+  var rd_valign = 0
+  var fullscreen = 1
+  var outmode = true
+  var vmode: VideoMode = VideoConsts.m800x480
+
+  def set_video_mode(w: Integer, h: Integer, m: VideoMode)
+  {
+    if (outmode)
+      vmode = m
+    else {
+      rd_width = w
+      rd_height = h
+    }
+  }
 
   for(arg <- args){
     if ((arg == "GW1N-1") || (arg == "tangnano"))
@@ -124,6 +113,46 @@ object TOPGen extends App {
       devtype = dtGW1NZ1
     else if ((arg == "GW1NR-9") || (arg == "tangnano9k"))
       devtype = dtGW1NR9
+
+    else if((arg == "vga-15:9") || (arg == "800x480")){
+      set_video_mode(800, 480, VideoConsts.m800x480)
+    }
+    else if((arg == "svga") || (arg == "800x600")){
+      set_video_mode(800, 600, VideoConsts.m800x600)
+    }
+    else if((arg == "480p") || (arg == "720x480")){
+      set_video_mode(720, 480, VideoConsts.m720x480)
+    }
+    else if((arg == "sd") || (arg == "576p") || (arg == "720x576")){
+      set_video_mode(720, 576, VideoConsts.m720x576)
+    }
+    else if((arg == "wsvga") || (arg == "1024x600")){
+      set_video_mode(1024, 600, VideoConsts.m1024x600)
+    }
+    else if((arg == "xga") || (arg == "1024x768")){
+      set_video_mode(1024, 768, VideoConsts.m1024x768)
+    }
+    else if((arg == "hd") || (arg == "720p") || (arg == "1280x720")){
+      set_video_mode(1280, 720, VideoConsts.m1280x720)
+    }
+    else if((arg == "wxga") || (arg == "1280x800")){
+      set_video_mode(1280, 800, VideoConsts.m1280x800)
+    }
+    else if((arg == "sxga") || (arg == "1280x1024")){
+      set_video_mode(1280, 1024, VideoConsts.m1280x1024)
+    }
+    else if(arg == "1360x768"){
+      set_video_mode(1360, 768, VideoConsts.m1360x768)
+    }
+    else if(arg == "1366x768"){
+      set_video_mode(1366, 768, VideoConsts.m1366x768)
+    }
+    else if(arg == "1440x900"){
+      set_video_mode(1440, 900, VideoConsts.m1440x900)
+    }
+    else if((arg == "wsxga") || (arg == "1600x900")){
+      set_video_mode(1600, 900, VideoConsts.m1600x900)
+    }
   }
   if (devtype == dtGW1N1)
     println("Building for tangnano")
@@ -133,5 +162,5 @@ object TOPGen extends App {
     println("Building for tangnano9k")
 
   (new ChiselStage).execute(args,
-    Seq(ChiselGeneratorAnnotation(() => new TOP(devtype))))
+    Seq(ChiselGeneratorAnnotation(() => new TOP(devtype, vmode))))
 }
