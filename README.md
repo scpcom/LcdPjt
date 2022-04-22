@@ -84,8 +84,9 @@ cd LcdPjt
 #### Build the project
 
 supported device type: tangnano tangnano1k tangnano9k  
+supported video modes: 480x272 800x480 1024x600  
 ```sh
-sbt -J-Xss256m "runMain hdl.TOPGen tangnano1k"
+sbt -J-Xss256m "runMain hdl.TOPGen tangnano1k 800x480"
 ```
 
 #### Generate the binary fs

@@ -38,13 +38,19 @@ class TOP(dt: DeviceType = dtGW1N1, vmode: VideoMode = VideoConsts.m800x480) ext
   val chip_osc = Module(new Gowin_OSC) //Use internal clock
   oscout_o := chip_osc.io.oscout //output oscout
   */
+  def get_pll_par(): PLLParams = {
+    if (vmode == VideoConsts.m1024x600)
+      LCDConsts.p61560khz
+    else if (vmode == VideoConsts.m800x480)
+      LCDConsts.p39960khz
+    else
+      vmode.pll
+  }
   def get_pll(): Video_PLL = {
-    /* 27 MHz * (36+1) / (4+1) = 199.8 MHz / 6 = 33.3 MHz ; 199.8 MHz / 5 = 39.96 MHz */
-    val p39960khz  = PLLParams(IDIV_SEL = 4, FBDIV_SEL = 36, ODIV_SEL = 4, DYN_SDIV_SEL = 6)
     if (dt == dtGW1N1)
       Module(new Gowin_PLL)
     else
-      Module(new Gowin_rPLL(p39960khz))
+      Module(new Gowin_rPLL(get_pll_par()))
   }
   val chip_pll = get_pll
   CLK_SYS := chip_pll.io.clkout //output clkout      //200M
