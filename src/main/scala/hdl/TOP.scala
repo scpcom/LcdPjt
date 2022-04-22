@@ -3,7 +3,7 @@ package hdl
 import chisel3._
 import chisel3.util.Cat
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
-import fpgamacro.gowin.{Gowin_OSC, Gowin_PLL, Gowin_rPLL, PLLParams, Video_PLL}
+import fpgamacro.gowin.{CLKDIV, Gowin_OSC, Gowin_PLL, Gowin_rPLL, PLLParams, Video_PLL}
 import hdmicore.video.{VideoMode,VideoParams,VideoConsts}
 
 sealed trait DeviceType
@@ -29,8 +29,14 @@ class TOP(dt: DeviceType = dtGW1N1, vmode: VideoMode = VideoConsts.m800x480) ext
   val LED = IO(Output(UInt(nbits.W)))
   val User_Button = IO(Input(Bool()))
 
-  val CLK_SYS = Wire(Clock())
-  val CLK_PIX = Wire(Clock())
+  val serial_clk = Wire(Clock())
+  val pll_lock = Wire(Bool())
+
+  val vout_rst_n = Wire(Bool())
+
+  val pix_clk = Wire(Clock())
+
+  val clk_12M = Wire(Clock())
 
   /*
   val oscout_o = Wire(Clock())
@@ -39,10 +45,8 @@ class TOP(dt: DeviceType = dtGW1N1, vmode: VideoMode = VideoConsts.m800x480) ext
   oscout_o := chip_osc.io.oscout //output oscout
   */
   def get_pll_par(): PLLParams = {
-    if (vmode == VideoConsts.m1024x600)
-      LCDConsts.p61560khz
-    else if (vmode == VideoConsts.m800x480)
-      LCDConsts.p39960khz
+    if (vmode == VideoConsts.m800x480)
+      LCDConsts.m800x480.pll
     else
       vmode.pll
   }
@@ -53,19 +57,26 @@ class TOP(dt: DeviceType = dtGW1N1, vmode: VideoMode = VideoConsts.m800x480) ext
       Module(new Gowin_rPLL(get_pll_par()))
   }
   val chip_pll = get_pll
-  CLK_SYS := chip_pll.io.clkout //output clkout      //200M
-  CLK_PIX := chip_pll.io.clkoutd //output clkoutd   //33.33M
   chip_pll.io.clkin := XTAL_IN //input clkin
+  serial_clk := chip_pll.io.clkout //output clkout      //200M
+  clk_12M := chip_pll.io.clkoutd //output clkoutd
+  pll_lock := chip_pll.io.lock //output lock
+  vout_rst_n := nRST & pll_lock
+
+  val uClkDiv = Module(new CLKDIV)
+  uClkDiv.io.RESETN := vout_rst_n
+  uClkDiv.io.HCLKIN := serial_clk //clk  x5
+  pix_clk := uClkDiv.io.CLKOUT //clk  x1   //33.33M
+  uClkDiv.io.CALIB := "b1".U(1.W)
 
 
-
-  withClockAndReset(CLK_SYS, ~nRST){
+  withClockAndReset(serial_clk, ~nRST){
   val vp = vmode.params
   val D1 = Module(new VGAMod(vp))
-  D1.io.I_clk := CLK_SYS
+  D1.io.I_clk := serial_clk
   D1.io.I_rst_n := nRST
 
-  D1.io.I_pxl_clk := CLK_PIX
+  D1.io.I_pxl_clk := pix_clk
   D1.io.I_rd_hres := vp.H_DISPLAY.U
   D1.io.I_rd_vres := vp.V_DISPLAY.U
   LCD_DEN := D1.io.videoSig.de
@@ -75,7 +86,7 @@ class TOP(dt: DeviceType = dtGW1N1, vmode: VideoMode = VideoConsts.m800x480) ext
   LCD_B := D1.io.videoSig.pixel.blue(7,3)
   LCD_G := D1.io.videoSig.pixel.green(7,2)
   LCD_R := D1.io.videoSig.pixel.red(7,3)
-  LCD_CLK := CLK_PIX
+  LCD_CLK := pix_clk
 
   //RGB LED TEST
   val cnmax = (100000000 / nleds).U // 9k with XTAL_IN: "d400_0000".U(24.W), 1k with XTAL_IN: "d1350_0000".U(31.W)
@@ -88,7 +99,7 @@ class TOP(dt: DeviceType = dtGW1N1, vmode: VideoMode = VideoConsts.m800x480) ext
     ledbits := Cat(ledbits(nbits-2,0), ledbits(nbits-1))
   }
   LED := ledbits
-  } // withClockAndReset(CLK_SYS, ~nRST)
+  } // withClockAndReset(serial_clk, ~nRST)
 
 }
 
