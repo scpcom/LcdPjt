@@ -14,6 +14,8 @@ case object dtGW1NR9 extends DeviceType
 class TOP(dt: DeviceType = dtGW1N1, vmode: VideoMode = VideoConsts.m800x480) extends RawModule {
   val nleds = if (dt == dtGW1NR9) 2 else 1
   val nbits = nleds * 3
+  val syn_hs_pol = 1
+  val syn_vs_pol = 1
 
   val nRST = IO(Input(Bool()))
   val XTAL_IN = IO(Input(Clock()))
@@ -71,7 +73,10 @@ class TOP(dt: DeviceType = dtGW1N1, vmode: VideoMode = VideoConsts.m800x480) ext
 
 
   withClockAndReset(serial_clk, ~nRST){
+  val cnt_vs = RegInit(0.U(10.W))
+  val vs_r = Reg(Bool())
   val vp = vmode.params
+
   val D1 = Module(new VGAMod(vp))
   D1.io.I_clk := serial_clk
   D1.io.I_rst_n := nRST
@@ -79,14 +84,39 @@ class TOP(dt: DeviceType = dtGW1N1, vmode: VideoMode = VideoConsts.m800x480) ext
   D1.io.I_pxl_clk := pix_clk
   D1.io.I_rd_hres := vp.H_DISPLAY.U
   D1.io.I_rd_vres := vp.V_DISPLAY.U
-  LCD_DEN := D1.io.videoSig.de
-  LCD_HYNC := D1.io.videoSig.hsync
-  LCD_SYNC := D1.io.videoSig.vsync
 
-  LCD_B := D1.io.videoSig.pixel.blue(7,3)
-  LCD_G := D1.io.videoSig.pixel.green(7,2)
-  LCD_R := D1.io.videoSig.pixel.red(7,3)
+  val testpattern_inst = Module(new testpattern(vp))
+  testpattern_inst.io.I_rst_n := nRST
+
+  testpattern_inst.io.I_pxl_clk := pix_clk
+  testpattern_inst.io.I_mode := 0.U(1.W) ## cnt_vs(7,6) //data select //0.U(3.W)
+  testpattern_inst.io.I_single_r := 0.U(8.W)
+  testpattern_inst.io.I_single_g := 255.U(8.W)
+  testpattern_inst.io.I_single_b := 0.U(8.W)
+  testpattern_inst.io.I_rd_hres := vp.H_DISPLAY.U
+  testpattern_inst.io.I_rd_vres := vp.V_DISPLAY.U
+  testpattern_inst.io.I_hs_pol := syn_hs_pol.U(1.W)    //HS polarity , 0:negetive ploarity，1：positive polarity
+  testpattern_inst.io.I_vs_pol := syn_vs_pol.U(1.W)    //VS polarity , 0:negetive ploarity，1：positive polarity
+
+  LCD_DEN := Mux((cnt_vs <= "h1ff".U(10.W)), testpattern_inst.io.videoSig.de, D1.io.videoSig.de)
+  LCD_HYNC := Mux((cnt_vs <= "h1ff".U(10.W)), testpattern_inst.io.videoSig.hsync, D1.io.videoSig.hsync)
+  LCD_SYNC := Mux((cnt_vs <= "h1ff".U(10.W)), testpattern_inst.io.videoSig.vsync, D1.io.videoSig.vsync)
+
+  LCD_B := Mux((cnt_vs <= "h1ff".U(10.W)), testpattern_inst.io.videoSig.pixel.blue(7,3), D1.io.videoSig.pixel.blue(7,3))
+  LCD_G := Mux((cnt_vs <= "h1ff".U(10.W)), testpattern_inst.io.videoSig.pixel.green(7,2), D1.io.videoSig.pixel.green(7,2))
+  LCD_R := Mux((cnt_vs <= "h1ff".U(10.W)), testpattern_inst.io.videoSig.pixel.red(7,3), D1.io.videoSig.pixel.red(7,3))
+
   LCD_CLK := pix_clk
+
+  val vs_in = testpattern_inst.io.videoSig.vsync
+  vs_r := vs_in
+  when (cnt_vs === "h3ff".U(10.W)) {
+    cnt_vs := 0.U
+  } .elsewhen (vs_r && ( !vs_in)) { //vs24 falling edge
+    cnt_vs := cnt_vs+"b1".U(1.W)
+  } .otherwise {
+    cnt_vs := cnt_vs
+  }
 
   //RGB LED TEST
   val cnmax = (100000000 / nleds).U // 9k with XTAL_IN: "d400_0000".U(24.W), 1k with XTAL_IN: "d1350_0000".U(31.W)
