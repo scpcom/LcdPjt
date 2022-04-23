@@ -50,7 +50,7 @@ class testpattern(vp: VideoParams) extends RawModule {
   val BLACK   = Cat(0.U(8.W),   0.U(8.W),   0.U(8.W)  )
 
   //====================================================
-  val Pout_de_w = Wire(Bool())
+  val Pout_de_w = Reg(Bool())
   val Pout_hs_w = Wire(Bool())
   val Pout_vs_w = Wire(Bool())
 
@@ -94,7 +94,7 @@ class testpattern(vp: VideoParams) extends RawModule {
 
   //-------------------------------------------------------------
 
-  Pout_de_dn := Pout_de_dn(N-2,0) ## Pout_de_w
+  Pout_de_dn := RegNext(RegNext(Pout_de_w)) ## RegNext(Pout_de_w) ## Pout_de_w
 
   //=================================================================================
   //Test Pattern
