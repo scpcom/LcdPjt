@@ -5,6 +5,7 @@ import chisel3.util.Cat
 import chisel3.stage.{ChiselGeneratorAnnotation, ChiselStage}
 import fpgamacro.gowin.{CLKDIV, Gowin_OSC, Gowin_PLL, Gowin_rPLL, PLLParams, Video_PLL}
 import hdmicore.video.{VideoMode,VideoParams,VideoConsts}
+import svo.svo_rgb_top
 
 sealed trait DeviceType
 case object dtGW1N1 extends DeviceType
@@ -98,13 +99,24 @@ class TOP(dt: DeviceType = dtGW1N1, vmode: VideoMode = VideoConsts.m800x480) ext
   testpattern_inst.io.I_hs_pol := syn_hs_pol.U(1.W)    //HS polarity , 0:negetive ploarity，1：positive polarity
   testpattern_inst.io.I_vs_pol := syn_vs_pol.U(1.W)    //VS polarity , 0:negetive ploarity，1：positive polarity
 
-  LCD_DEN := Mux((cnt_vs <= "h1ff".U(10.W)), testpattern_inst.io.videoSig.de, D1.io.videoSig.de)
-  LCD_HYNC := Mux((cnt_vs <= "h1ff".U(10.W)), testpattern_inst.io.videoSig.hsync, D1.io.videoSig.hsync)
-  LCD_SYNC := Mux((cnt_vs <= "h1ff".U(10.W)), testpattern_inst.io.videoSig.vsync, D1.io.videoSig.vsync)
+  //========================================================================
+  val u_svo = Module(new svo_rgb_top(vp))
+  u_svo.io.clk := pix_clk
+  u_svo.io.resetn := nRST
+  u_svo.io.clk_pixel := pix_clk
+  u_svo.io.locked := pll_lock
+  u_svo.io.term_in_tvalid := false.B //svo_term_valid
+  u_svo.io.term_in_tdata := 0.U(8.W) //uart_wdata(7,0)
 
-  LCD_B := Mux((cnt_vs <= "h1ff".U(10.W)), testpattern_inst.io.videoSig.pixel.blue(7,3), D1.io.videoSig.pixel.blue(7,3))
-  LCD_G := Mux((cnt_vs <= "h1ff".U(10.W)), testpattern_inst.io.videoSig.pixel.green(7,2), D1.io.videoSig.pixel.green(7,2))
-  LCD_R := Mux((cnt_vs <= "h1ff".U(10.W)), testpattern_inst.io.videoSig.pixel.red(7,3), D1.io.videoSig.pixel.red(7,3))
+  //============================================================================
+
+  LCD_DEN  := Mux((cnt_vs <= "h1ff".U(10.W)), testpattern_inst.io.videoSig.de,     Mux((cnt_vs <= "h2ff".U(10.W)), D1.io.videoSig.de,    u_svo.io.videoSig.de))
+  LCD_HYNC := Mux((cnt_vs <= "h1ff".U(10.W)), testpattern_inst.io.videoSig.hsync,  Mux((cnt_vs <= "h2ff".U(10.W)), D1.io.videoSig.hsync, u_svo.io.videoSig.hsync))
+  LCD_SYNC := Mux((cnt_vs <= "h1ff".U(10.W)), testpattern_inst.io.videoSig.vsync,  Mux((cnt_vs <= "h2ff".U(10.W)), D1.io.videoSig.vsync, u_svo.io.videoSig.vsync))
+
+  LCD_B    := Mux((cnt_vs <= "h1ff".U(10.W)), testpattern_inst.io.videoSig.pixel.blue(7,3),   Mux((cnt_vs <= "h2ff".U(10.W)), D1.io.videoSig.pixel.blue(7,3),  u_svo.io.videoSig.pixel.blue(7,3)))
+  LCD_G    := Mux((cnt_vs <= "h1ff".U(10.W)), testpattern_inst.io.videoSig.pixel.green(7,2),  Mux((cnt_vs <= "h2ff".U(10.W)), D1.io.videoSig.pixel.green(7,2), u_svo.io.videoSig.pixel.green(7,2)))
+  LCD_R    := Mux((cnt_vs <= "h1ff".U(10.W)), testpattern_inst.io.videoSig.pixel.red(7,3),    Mux((cnt_vs <= "h2ff".U(10.W)), D1.io.videoSig.pixel.red(7,3),   u_svo.io.videoSig.pixel.red(7,3)))
 
   LCD_CLK := pix_clk
 
